@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
-import { uploadsRoute } from './src/router/uploads-route';
-import { entitiesRoute } from './src/router/entities-route';
+import { uploadsRoute } from './router/uploads-route';
+import { entitiesRoute } from './router/entities-route';
 
 const app = new Elysia()
     .get('/', () => ({ status: 'OK' }), {

@@ -1,11 +1,11 @@
 {
   "name": "upload-file-form",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run --watch index.ts",
-    "start": "bun run index.ts",
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "jobs:cleanup": "bun run src/jobs/cleanup-job.ts"
