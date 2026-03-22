@@ -9,21 +9,32 @@ import { eq } from 'drizzle-orm';
 import { getTemporaryFile, markFileAsLinked, moveFileToPermanent } from './uploads-services';
 
 /**
- * Create a new entity with an optional linked file
+ * Create a new entity with an optional linked file (with transaction)
  * @param name - Entity name
  * @param description - Entity description
  * @param fileId - Optional file ID from temporary upload
  * @returns The created entity record
  */
-export async function createEntity(name: string, description: string | null, fileId: string | null) {
-    const result = await db.insert(entities).values({
-        name,
-        description,
-        fileId,
-        createdAt: new Date().toISOString()
-    }).returning();
-    
-    return result[0];
+export async function createEntityWithFileLink(name: string, description: string | null, fileId: string | null) {
+    await db.transaction(async (tx) => {
+        // Create entity
+        await tx.insert(entities).values({
+            name,
+            description,
+            fileId,
+        });
+
+        // Link file if provided
+        if (fileId) {
+            // Mark file as linked in temporary_uploads table
+            await tx.update(temporaryUploads)
+                .set({ status: 'linked' })
+                .where(eq(temporaryUploads.fileId, fileId));
+
+            // Move file to permanent storage
+            await moveFileToPermanent(fileId);
+        }
+    });
 }
 
 /**
@@ -37,31 +48,14 @@ export async function validateFileExists(fileId: string): Promise<boolean> {
 }
 
 /**
- * Link a file to an entity and move to permanent storage
- * @param fileId - The file ID to link
- * @returns true if linked successfully
- */
-export async function linkFileToFileId(fileId: string): Promise<boolean> {
-    // Mark file as linked in temporary_uploads table
-    const marked = await markFileAsLinked(fileId);
-    
-    if (!marked) {
-        return false;
-    }
-    
-    // Move file to permanent storage
-    await moveFileToPermanent(fileId);
-    
-    return true;
-}
-
-/**
  * Get entity by ID
  * @param id - Entity ID
  * @returns Entity record or null if not found
  */
 export async function getEntityById(id: number) {
-    const allEntities = await db.select().from(entities);
-    const found = allEntities.find(e => e.id === id);
-    return found || null;
+    const results = await db.select()
+        .from(entities)
+        .where(eq(entities.id, id))
+        .limit(1);
+    return results[0] || null;
 }

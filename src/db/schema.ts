@@ -8,7 +8,7 @@ export const temporaryUploads = sqliteTable('temporary_uploads', {
     fileSize: integer('file_size').notNull(),
     mimeType: text('mime_type').notNull(),
     status: text('status').notNull().default('pending'), // 'pending' | 'linked'
-    createdAt: text('created_at').default(new Date().toISOString())
+    createdAt: text('created_at').default('(CURRENT_TIMESTAMP)')
 });
 
 export const entities = sqliteTable('entities', {
@@ -16,5 +16,5 @@ export const entities = sqliteTable('entities', {
     name: text('name').notNull(),
     description: text('description'),
     fileId: text('file_id'),
-    createdAt: text('created_at').default(new Date().toISOString())
+    createdAt: text('created_at').default('(CURRENT_TIMESTAMP)')
 });

@@ -14,30 +14,32 @@ export const uploadsRoute = new Elysia({
         description: 'File upload management endpoints'
     }
 })
-.post('', async ({ body }) => {
+.post('', async ({ body, set }) => {
     const uploadedFile = body.file;
-    
+
     if (!uploadedFile) {
+        set.status = 400;
         return {
             error: 'No file uploaded'
         };
     }
-    
+
     // Validate file
     const validationError = getValidationError(uploadedFile.name, uploadedFile.size);
     if (validationError) {
+        set.status = 400;
         return {
             error: validationError
         };
     }
-    
+
     try {
         // Generate unique file ID
         const fileId = generateFileId();
-        
+
         // Save file to temporary storage
         await saveTemporaryFile(uploadedFile, fileId);
-        
+
         return {
             data: {
                 file_id: fileId
@@ -45,6 +47,7 @@ export const uploadsRoute = new Elysia({
         };
     } catch (error) {
         console.error('Upload error:', error);
+        set.status = 500;
         return {
             error: 'Upload failed'
         };
@@ -91,6 +94,22 @@ export const uploadsRoute = new Elysia({
                                 error: {
                                     type: 'string',
                                     example: 'Invalid file extension. Allowed extensions: .pdf, .jpg, .jpeg, .png'
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            500: {
+                description: 'Upload failed',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                error: {
+                                    type: 'string',
+                                    example: 'Upload failed'
                                 }
                             }
                         }

@@ -4,7 +4,7 @@
  */
 
 import { Elysia, t } from 'elysia';
-import { createEntity, validateFileExists, linkFileToFileId } from '../services/entities-services';
+import { createEntityWithFileLink, validateFileExists } from '../services/entities-services';
 
 export const entitiesRoute = new Elysia({
     prefix: '/api/entities',
@@ -13,33 +13,30 @@ export const entitiesRoute = new Elysia({
         description: 'Entity form submission endpoints'
     }
 })
-.post('', async ({ body }) => {
+.post('', async ({ body, set }) => {
     const { name, description, file_id } = body;
-    
+
     // Validate file_id if provided
     if (file_id) {
         const fileExists = await validateFileExists(file_id);
         if (!fileExists) {
+            set.status = 400;
             return {
                 error: 'File not found'
             };
         }
     }
-    
+
     try {
-        // Create entity
-        const entity = await createEntity(name, description ?? null, file_id ?? null);
-        
-        // Link file if provided
-        if (file_id) {
-            await linkFileToFileId(file_id);
-        }
-        
+        // Create entity and link file in a transaction
+        await createEntityWithFileLink(name, description ?? null, file_id ?? null);
+
         return {
             data: 'OK'
         };
     } catch (error) {
         console.error('Create entity error:', error);
+        set.status = 500;
         return {
             error: 'Failed to create entity'
         };
@@ -89,6 +86,22 @@ export const entitiesRoute = new Elysia({
                                 error: {
                                     type: 'string',
                                     example: 'File not found'
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            500: {
+                description: 'Failed to create entity',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                error: {
+                                    type: 'string',
+                                    example: 'Failed to create entity'
                                 }
                             }
                         }

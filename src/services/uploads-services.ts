@@ -41,10 +41,9 @@ export async function saveTemporaryFile(file: File, fileId: string) {
         filePath,
         fileSize,
         mimeType,
-        status: 'pending',
-        createdAt: new Date().toISOString()
+        status: 'pending'
     }).returning();
-    
+
     return result[0];
 }
 
@@ -67,11 +66,16 @@ export async function getTemporaryFile(fileId: string) {
  * @returns true if updated successfully, false if file not found
  */
 export async function markFileAsLinked(fileId: string): Promise<boolean> {
-    const result = await db.update(temporaryUploads)
+    const existing = await getTemporaryFile(fileId);
+    if (!existing) {
+        return false;
+    }
+    
+    await db.update(temporaryUploads)
         .set({ status: 'linked' })
         .where(eq(temporaryUploads.fileId, fileId));
-    
-    return result.changes > 0;
+
+    return true;
 }
 
 /**
@@ -126,29 +130,29 @@ export async function deleteOrphanFile(fileId: string): Promise<boolean> {
  */
 export async function moveFileToPermanent(fileId: string): Promise<boolean> {
     const fileRecord = await getTemporaryFile(fileId);
-    
+
     if (!fileRecord) {
         return false;
     }
-    
-    const fileName = fileRecord.fileName.substring(fileRecord.fileName.lastIndexOf('.'));
-    const newFileName = `${fileId}${fileName}`;
+
+    const extension = fileRecord.fileName.substring(fileRecord.fileName.lastIndexOf('.'));
+    const newFileName = `${fileId}${extension}`;
     const newFilePath = join(PERMANENT_UPLOAD_DIR, newFileName);
-    
+
     // Move file
     const file = Bun.file(fileRecord.filePath);
     await Bun.write(newFilePath, file);
-    
+
     // Delete old file
     if (existsSync(fileRecord.filePath)) {
         unlinkSync(fileRecord.filePath);
     }
-    
+
     // Update database record
     await db.update(temporaryUploads)
         .set({ filePath: newFilePath })
         .where(eq(temporaryUploads.fileId, fileId));
-    
+
     return true;
 }
 

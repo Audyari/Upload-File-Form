@@ -3,6 +3,31 @@ import { uploadsRoute } from './src/router/uploads-route';
 import { entitiesRoute } from './src/router/entities-route';
 
 const app = new Elysia()
+    .get('/', () => ({ status: 'OK' }), {
+        detail: {
+            tags: ['Health'],
+            summary: 'Health check endpoint',
+            description: 'Returns the health status of the API',
+            responses: {
+                200: {
+                    description: 'API is healthy',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    status: {
+                                        type: 'string',
+                                        example: 'OK'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    })
     .use(uploadsRoute)
     .use(entitiesRoute)
     .listen(3000);

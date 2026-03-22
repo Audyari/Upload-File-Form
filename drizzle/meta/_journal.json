@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1774169425337,
-      "tag": "0000_last_klaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1774169812963,
-      "tag": "0001_tough_sentinels",
+      "when": 1774171766340,
+      "tag": "0000_smart_human_cannonball",
       "breakpoints": true
     }
   ]

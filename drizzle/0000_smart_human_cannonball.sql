@@ -3,7 +3,7 @@ CREATE TABLE `entities` (
 	`name` text NOT NULL,
 	`description` text,
 	`file_id` text,
-	`created_at` text DEFAULT '2026-03-22T08:50:25.328Z'
+	`created_at` text DEFAULT '(CURRENT_TIMESTAMP)'
 );
 --> statement-breakpoint
 CREATE TABLE `temporary_uploads` (
@@ -14,7 +14,7 @@ CREATE TABLE `temporary_uploads` (
 	`file_size` integer NOT NULL,
 	`mime_type` text NOT NULL,
 	`status` text DEFAULT 'pending' NOT NULL,
-	`created_at` text DEFAULT '2026-03-22T08:50:25.326Z'
+	`created_at` text DEFAULT '(CURRENT_TIMESTAMP)'
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `temporary_uploads_file_id_unique` ON `temporary_uploads` (`file_id`);
