@@ -172,8 +172,16 @@ describe('Entities API', () => {
                 })
             );
 
-            // Elysia accepts empty strings but validates at DB level
+            // Empty name should be rejected by schema validation (422) or DB constraint (500)
+            // Elysia's t.String() validator accepts empty strings by default
+            // but the database may reject them depending on schema constraints
             expect([200, 422, 500]).toContain(response.status);
+            
+            // If accepted (200), verify it was created with empty name
+            if (response.status === 200) {
+                const records = await db.select().from(entities);
+                expect(records.some(r => r.name === '')).toBe(true);
+            }
         });
 
         it('should reject entity with missing name field', async () => {

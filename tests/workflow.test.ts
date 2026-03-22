@@ -13,8 +13,11 @@ import { uploadsRoute } from '../src/router/uploads-route';
 import { entitiesRoute } from '../src/router/entities-route';
 import { generateFileId } from '../src/services/uploads-services';
 import { existsSync } from 'fs';
+import { join } from 'path';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB as per file-validator.ts
+const TEMP_UPLOAD_DIR = join(process.cwd(), 'uploads', 'temp');
+const PERMANENT_UPLOAD_DIR = join(process.cwd(), 'uploads', 'permanent');
 
 // Create full test app with actual routes
 const createApp = () => {
@@ -354,6 +357,42 @@ describe('Integration Workflow Tests', () => {
                 .where(eq(temporaryUploads.status, 'pending'));
 
             expect(orphanFiles.length).toBe(0);
+        });
+
+        it('should cleanup physical files after test teardown', async () => {
+            // Upload a file
+            const file = createMockFile({
+                name: 'cleanup-verify-test.pdf',
+                size: 1024,
+                type: 'application/pdf'
+            });
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadResponse = await app.handle(
+                new Request('http://localhost:3000/api/uploads', {
+                    method: 'POST',
+                    body: formData
+                })
+            );
+
+            expect(uploadResponse.status).toBe(200);
+            const uploadBody = await uploadResponse.json();
+            const fileId = uploadBody.data.file_id;
+
+            // Get file path from database
+            const records = await db.select().from(temporaryUploads);
+            const filePath = records[0].filePath;
+
+            // Verify file exists before cleanup
+            expect(existsSync(filePath)).toBe(true);
+
+            // Manually trigger cleanup
+            await fullCleanup();
+
+            // Verify file is deleted after cleanup
+            expect(existsSync(filePath)).toBe(false);
         });
     });
 });

@@ -10,8 +10,11 @@ import { db } from '../src/db';
 import { temporaryUploads } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
 import { uploadsRoute } from '../src/router/uploads-route';
+import { existsSync } from 'fs';
+import { join } from 'path';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB as per file-validator.ts
+const TEMP_UPLOAD_DIR = join(process.cwd(), 'uploads', 'temp');
 
 // Create test app using actual route
 const createApp = () => {
@@ -329,6 +332,63 @@ describe('Uploads API', () => {
 
             const records = await db.select().from(temporaryUploads);
             expect(records.length).toBe(1);
+        });
+
+        it('should create physical file in uploads/temp directory', async () => {
+            const file = createMockFile({
+                name: 'physical-test.pdf',
+                size: 2048,
+                type: 'application/pdf'
+            });
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await app.handle(
+                new Request('http://localhost:3000/api/uploads', {
+                    method: 'POST',
+                    body: formData
+                })
+            );
+
+            expect(response.status).toBe(200);
+            const body = await response.json();
+            const fileId = body.data.file_id;
+
+            // Get file record from database
+            const records = await db.select().from(temporaryUploads);
+            expect(records.length).toBe(1);
+            
+            const filePath = records[0].filePath;
+            
+            // Verify physical file exists
+            expect(existsSync(filePath)).toBe(true);
+        });
+
+        it('should verify file content matches uploaded content', async () => {
+            const testContent = 'Test file content for verification';
+            const file = new File([testContent], 'content-test.pdf', {
+                type: 'application/pdf'
+            });
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await app.handle(
+                new Request('http://localhost:3000/api/uploads', {
+                    method: 'POST',
+                    body: formData
+                })
+            );
+
+            expect(response.status).toBe(200);
+
+            const records = await db.select().from(temporaryUploads);
+            const filePath = records[0].filePath;
+
+            // Read file content and verify
+            const savedContent = await Bun.file(filePath).text();
+            expect(savedContent).toBe(testContent);
         });
     });
 });
