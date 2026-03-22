@@ -1,0 +1,315 @@
+Buatkan issue.md berisi planning untuk membuat ini :
+
+Buatkan projek baru di folder ini
+
+Menggunakan Bun
+
+Dan Gunakan Dependency :
+
+-Elysia.JS
+-Drizzle
+-Sqlite
+
+jananga terlalu low level atau detail
+Cukup instruksikan secara hight level
+
+Nanti documen planning nya akan di gunakan oleh Programmer atau model yang lebih murah untuk diimpelemtasiakan
+
+
+================================================================
+
+Buatkan issue.md yang berisi perencanaan untuk nanti di implementasikan oleh junior programmer atau ai model yang
+lebih murah.
+
+isi dari planing nya adalah sebagai berikut :
+
+buat table users :
+id integer  auto increment
+name varchar 255 not null
+email varchar 255 not null
+password varchar not null (password merupakan hash dari bcrypt)
+created_ad  timestamp default current_timestamp
+
+buatkan API untuk registrasi user baru
+
+Endpoint : POST /api/users
+
+Request Body :
+
+{
+    "name" : "AudyariW"
+    "email" : "audy123ari@gmail.com"
+    "password" : "rahasia"
+}
+
+Response Body (Succees) :
+
+{
+    "Data" : "OK"
+}
+
+Response Body (Error) :
+
+{
+    "Error" : "Email Sudah Terdaftar"
+}
+
+Struktur Folder didalam src
+- Router : ini berisi routing Elysia JS
+- services : ini berisi logic bisnis aplikasi
+
+Struktur File :
+- Router : menggunakan format misal users-route.ts
+- Services : menggunakan format misal users-services.ts
+
+Jelaskan Tahapan - tahapan  yang harus di lakukkan untuk mengimplementasikan Fitur ini, anggap nanti yang
+mengimplentasikan programmer juniar atau user model ai yang lebih murah.
+
+
+=========================================================================
+
+Buatkan issue.md yang berisi perencanaan untuk nanti di implementasikan oleh junior programmer atau ai model yang
+lebih murah.
+
+isi dari planing nya adalah sebagai berikut :
+
+buat table sessions :
+id integer  auto increment
+token varchar 255 not null (isinya UUID untuk token user yang login)
+user_id integer (FK ke table users)
+created_ad  timestamp default current_timestamp
+
+buatkan API untuk registrasi login user
+
+Endpoint : POST /api/users/login
+
+Request Body :
+
+{
+    "email" : "audy123ari@gmail.com"
+    "password" : "rahasia"
+}
+
+Response Body (Succees) :
+
+{
+    "Data" : "token"
+}
+
+Response Body (Error) :
+
+{
+    "Error" : "Email atau password salah"
+}
+
+Struktur Folder didalam src
+- Router : ini berisi routing Elysia JS
+- services : ini berisi logic bisnis aplikasi
+
+Struktur File :
+- Router : menggunakan format misal users-route.ts
+- Services : menggunakan format misal users-services.ts
+
+Jelaskan Tahapan - tahapan  yang harus di lakukkan untuk mengimplementasikan Fitur ini, anggap nanti yang
+mengimplentasikan programmer juniar atau user model ai yang lebih murah.
+
+============================================================================
+
+
+Buatkan issue.md yang berisi perencanaan untuk nanti di implementasikan oleh junior programmer atau ai model yang
+lebih murah.
+
+isi dari planing nya adalah sebagai berikut :
+
+buatkan API untuk get user saat ini yang sedang login
+
+Endpoint : get /api/users/current
+
+Header : 
+- Authorization Bearer<token> (token adalah token yang ada di table users)
+
+
+Response Body (Succees) :
+
+{
+    "Data" : {
+        "id" : 1,
+        "name" : "AudyariW",
+        "email: : "audy123ari@gmail.com",
+        "created_at" : "timestamp"
+    }
+}
+
+Response Body (Error) :
+
+{
+    "Error" : "Unauthorized"
+}
+
+Struktur Folder didalam src
+- Router : ini berisi routing Elysia JS
+- services : ini berisi logic bisnis aplikasi
+
+Struktur File :
+- Router : menggunakan format misal users-route.ts
+- Services : menggunakan format misal users-services.ts
+
+
+
+Jelaskan Tahapan - tahapan  yang harus di lakukkan untuk mengimplementasikan Fitur ini, anggap nanti yang
+mengimplentasikan programmer juniar atau user model ai yang lebih murah.
+
+==================================================================
+
+
+Buatkan issue.md yang berisi perencanaan untuk nanti di implementasikan oleh junior programmer atau ai model yang
+lebih murah.
+
+isi dari planing nya adalah sebagai berikut :
+
+buatkan API untuk logout user
+
+Endpoint : DELETE /api/users/logout
+
+Header : 
+- Authorization Bearer<token> (token adalah token yang ada di table users)
+
+
+Response Body (Succees) :
+
+{
+    "Data" :"OK"
+}
+
+jika sukses logout, maka data session dengan token tersebut harus dihapus dari table session
+
+Response Body (Error) :
+
+{
+    "Error" : "Unauthorized"
+}
+
+Struktur Folder didalam src
+- Router : ini berisi routing Elysia JS
+- services : ini berisi logic bisnis aplikasi
+
+Struktur File :
+- Router : menggunakan format misal users-route.ts
+- Services : menggunakan format misal users-services.ts
+
+
+
+Jelaskan Tahapan - tahapan  yang harus di lakukkan untuk mengimplementasikan Fitur ini, anggap nanti yang
+mengimplentasikan programmer juniar atau user model ai yang lebih murah.
+
+
+=============================================
+
+coba review PR ini apa ada yang masih perlu di improve atau tidak , jika ada tambahkan 
+di komentar PR nya.
+
+===========================================
+
+cek komen di PR ini .... perbaiki sesuai yg di minta di komentar.
+
+===========================================
+
+coba jalankan aplikasi nya, lalu coba registrasi user baru dengan nama panjang nya 300 karakter
+
+=============================================
+
+Buatkan issus.md untuk bug ini , jelaskan tahapan bagaimana cara perbaiki nya untk junior programmer
+atau model ai yang lebih murah.
+
+
+=================================================
+
+Buatkan issue.md yang berisi perencanaan untuk nanti di implementasikan oleh junior programmer atau ai model yang
+lebih murah.
+
+isi dari planing nya adalah sebagai berikut :
+
+Buatkan Unit test untuk semua API yg tersedia
+
+simpan di folder test, menggunakan bun test
+
+setiap secenario, hapus datanya terlebih dahulu agar konsisten
+
+buat secenario test API selengkap mungkin
+
+Jangan buatkan terlalu detail instruksi unit test nya. Buatkan saja sekenario apa saja yang harus di test,
+Biarkan nanti yang imlementasi detail secenario nya adalah junior programmer atau model AI yg lebih murah.
+
+
+===============================================
+
+Update Readme.md, jelaskan tentang aplikasi ini, Arsitektur nya seperti folder dan penamaan File
+atau struktur file, jelaskan juga API yang tersedia, jelaskan juga schema database yang ada , cara setup Projek,
+teknologi stack yang di gunakan , library yang di gunakan , cara run aplikasi, cara test aplikasi
+
+===========================
+
+Tambahkan komentar di tiap function di @users-services.ts , jelaskan untuk apa function tersebut.
+
+========================
+
+
+Buatkan issue.md yang berisi perencanaan untuk nanti di implementasikan oleh junior programmer atau ai model yang
+lebih murah.
+
+isi dari planing nya adalah sebagai berikut :
+
+Saya mau tambahkan fitur swagger di project ini.
+Agar User lain yang mau menggunakan API di App ini lebih mudah tinggal membka swagger nya. 
+
+Buat Tahapan tahapan yang harus dilakukkan untuk implementasi fitur ini, jelaskan secara detail dengan target
+junior programmer atau model AI yg lebih murah.
+
+========================================
+
+ternyata swagger nya tidak ada contoh response body nya, kosong, saya ingin semua nya ada
+contoh response body nya.
+
+============================
+
+jelaskan kepada saya ini projek apa ?
+
+===========================
+
+jelaskan alur lengkap proses registrasi user ?
+
+================================
+
+kenapa ada proses hashing password ? kenapa tidak di simpan password nya di database?
+
+===================================
+ 
+ kenapa algoritma yang di gunakan bcrypt? kenapa tidak algoritma yang lain?
+
+ ==================================
+
+ faktor beban 10 itu maksud nya apa ?
+
+ ===============================
+
+ emang kenapa algortma untuk hashing harus lambat ?
+
+ ===================================
+
+ coba buatkan diagram untuk flow registrasi user
+
+ =================================
+
+ jelaskan arsitektur kode di projek ini ?
+
+ =========================
+
+ darimana referensi Layered Arcitecture itu adalah best practice?
+ coba kasih saya buku atau artikel yang menjelaskan tentang ini.
+
+ ==============================
+
+ keunggulan nya apa menggunakan Layered Arcitecture ?
+
+
+
