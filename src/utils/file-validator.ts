@@ -6,8 +6,8 @@
 // Whitelist of allowed file extensions
 const ALLOWED_EXTENSIONS = ['.pdf', '.jpg', '.jpeg', '.png'];
 
-// Maximum file size in bytes (10MB)
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+// Maximum file size in bytes (5MB) - as per Issue #3
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 /**
  * Validate file extension against whitelist

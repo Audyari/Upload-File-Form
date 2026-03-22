@@ -8,7 +8,11 @@
     "start": "bun run src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "jobs:cleanup": "bun run src/jobs/cleanup-job.ts"
+    "jobs:cleanup": "bun run src/jobs/cleanup-job.ts",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:integration": "bun test tests/integration",
+    "test:coverage": "bun test --coverage"
   },
   "devDependencies": {
     "@types/bun": "latest",
