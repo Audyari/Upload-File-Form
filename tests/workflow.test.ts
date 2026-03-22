@@ -4,118 +4,24 @@
  */
 
 import { describe, expect, it, beforeEach, afterEach } from 'bun:test';
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
 import { fullCleanup, createMockFile } from './setup';
 import { db } from '../src/db';
 import { temporaryUploads, entities } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
+import { uploadsRoute } from '../src/router/uploads-route';
+import { entitiesRoute } from '../src/router/entities-route';
 import { generateFileId } from '../src/services/uploads-services';
-import { getValidationError } from '../src/utils/file-validator';
 import { existsSync } from 'fs';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB as per file-validator.ts
 
-// Create full test app with all routes
+// Create full test app with actual routes
 const createApp = () => {
-    const app = new Elysia();
-
-    // Health check endpoint
-    app.get('/', () => ({ status: 'OK' }));
-
-    // Uploads endpoint
-    app.post('/api/uploads', async ({ body, set }) => {
-        const uploadedFile = body.file;
-
-        if (!uploadedFile) {
-            set.status = 400;
-            return { error: 'No file uploaded' };
-        }
-
-        const validationError = getValidationError(uploadedFile.name, uploadedFile.size);
-        if (validationError) {
-            set.status = 400;
-            return { error: validationError };
-        }
-
-        try {
-            const fileId = generateFileId();
-            const fileName = uploadedFile.name;
-            const extension = fileName.substring(fileName.lastIndexOf('.'));
-            const uniqueFileName = `${fileId}${extension}`;
-            const filePath = `uploads/temp/${uniqueFileName}`;
-
-            const arrayBuffer = await uploadedFile.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            await Bun.write(filePath, buffer);
-
-            await db.insert(temporaryUploads).values({
-                fileId,
-                fileName: uploadedFile.name,
-                filePath,
-                fileSize: uploadedFile.size,
-                mimeType: uploadedFile.type,
-                status: 'pending'
-            });
-
-            return { data: { file_id: fileId } };
-        } catch (error) {
-            set.status = 500;
-            return { error: 'Upload failed' };
-        }
-    }, {
-        body: t.Object({ file: t.File() })
-    });
-
-    // Entities endpoint
-    app.post('/api/entities', async ({ body, set }) => {
-        const { name, description, file_id } = body;
-
-        if (file_id) {
-            const existingFile = await db.select()
-                .from(temporaryUploads)
-                .where(eq(temporaryUploads.fileId, file_id))
-                .limit(1);
-
-            if (existingFile.length === 0) {
-                set.status = 400;
-                return { error: 'File not found' };
-            }
-
-            if (existingFile[0].status === 'linked') {
-                set.status = 400;
-                return { error: 'File already linked' };
-            }
-        }
-
-        try {
-            await db.transaction(async (tx) => {
-                await tx.insert(entities).values({
-                    name,
-                    description: description ?? null,
-                    fileId: file_id ?? null,
-                });
-
-                if (file_id) {
-                    await tx.update(temporaryUploads)
-                        .set({ status: 'linked' })
-                        .where(eq(temporaryUploads.fileId, file_id));
-                }
-            });
-
-            return { data: 'OK' };
-        } catch (error) {
-            set.status = 500;
-            return { error: 'Failed to create entity' };
-        }
-    }, {
-        body: t.Object({
-            name: t.String(),
-            description: t.Optional(t.String()),
-            file_id: t.Optional(t.String())
-        })
-    });
-
-    return app;
+    return new Elysia()
+        .get('/', () => ({ status: 'OK' }))
+        .use(uploadsRoute)
+        .use(entitiesRoute);
 };
 
 describe('Integration Workflow Tests', () => {

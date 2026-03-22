@@ -52,7 +52,7 @@ describe('File Validator Utils', () => {
     });
 
     describe('isValidFileSize', () => {
-        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
         it('should return true for file size equal to max', () => {
             expect(isValidFileSize(MAX_FILE_SIZE)).toBe(true);
@@ -79,7 +79,7 @@ describe('File Validator Utils', () => {
     });
 
     describe('getValidationError', () => {
-        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
         it('should return null for valid file', () => {
             expect(getValidationError('document.pdf', 1024)).toBeNull();
@@ -98,7 +98,7 @@ describe('File Validator Utils', () => {
         it('should return error for file too large', () => {
             const error = getValidationError('document.pdf', MAX_FILE_SIZE + 1);
             expect(error).toContain('File too large');
-            expect(error).toContain('10MB');
+            expect(error).toContain('5MB');
         });
 
         it('should return error for both invalid extension and size', () => {

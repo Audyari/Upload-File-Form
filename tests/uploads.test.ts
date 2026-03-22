@@ -4,74 +4,18 @@
  */
 
 import { describe, expect, it, beforeEach, afterEach } from 'bun:test';
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
 import { fullCleanup, createMockFile } from './setup';
 import { db } from '../src/db';
 import { temporaryUploads } from '../src/db/schema';
 import { eq } from 'drizzle-orm';
-import { existsSync, unlinkSync } from 'fs';
+import { uploadsRoute } from '../src/router/uploads-route';
 
-// Import services
-import { generateFileId } from '../src/services/uploads-services';
-import { getValidationError } from '../src/utils/file-validator';
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB as per file-validator.ts
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB as per file-validator.ts
-
-// Create test app with uploads route
+// Create test app using actual route
 const createApp = () => {
-    return new Elysia({ prefix: '/api/uploads' })
-        .post('', async ({ body, set }) => {
-            const uploadedFile = body.file;
-
-            if (!uploadedFile) {
-                set.status = 400;
-                return { error: 'No file uploaded' };
-            }
-
-            // Validate file
-            const validationError = getValidationError(uploadedFile.name, uploadedFile.size);
-            if (validationError) {
-                set.status = 400;
-                return { error: validationError };
-            }
-
-            try {
-                // Generate unique file ID
-                const fileId = generateFileId();
-
-                // Save file to temporary storage
-                const fileName = uploadedFile.name;
-                const extension = fileName.substring(fileName.lastIndexOf('.'));
-                const uniqueFileName = `${fileId}${extension}`;
-                const filePath = `uploads/temp/${uniqueFileName}`;
-
-                const arrayBuffer = await uploadedFile.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
-                await Bun.write(filePath, buffer);
-
-                // Record metadata in database
-                await db.insert(temporaryUploads).values({
-                    fileId,
-                    fileName: uploadedFile.name,
-                    filePath,
-                    fileSize: uploadedFile.size,
-                    mimeType: uploadedFile.type,
-                    status: 'pending'
-                });
-
-                return {
-                    data: { file_id: fileId }
-                };
-            } catch (error) {
-                console.error('Upload error:', error);
-                set.status = 500;
-                return { error: 'Upload failed' };
-            }
-        }, {
-            body: t.Object({
-                file: t.File()
-            })
-        });
+    return new Elysia().use(uploadsRoute);
 };
 
 describe('Uploads API', () => {
@@ -178,7 +122,7 @@ describe('Uploads API', () => {
             expect(response.status).toBe(200);
         });
 
-        it('should upload file with size exactly at limit (10MB)', async () => {
+        it('should upload file with size exactly at limit (5MB)', async () => {
             const file = createMockFile({
                 name: 'large-document.pdf',
                 size: MAX_FILE_SIZE,
@@ -200,7 +144,7 @@ describe('Uploads API', () => {
     });
 
     describe('POST /api/uploads - Invalid File Uploads', () => {
-        it('should reject file exceeding size limit (>10MB)', async () => {
+        it('should reject file exceeding size limit (>5MB)', async () => {
             const file = createMockFile({
                 name: 'too-large.pdf',
                 size: MAX_FILE_SIZE + 1,
@@ -298,8 +242,7 @@ describe('Uploads API', () => {
                 })
             );
 
-            // Elysia returns 422 for validation errors when required field is missing
-            expect([400, 422]).toContain(response.status);
+            expect(response.status).toBe(422);
         });
 
         it('should reject upload with empty file field', async () => {
@@ -313,8 +256,8 @@ describe('Uploads API', () => {
                 })
             );
 
-            // Empty file may fail with 400 (validation), 422 (schema), or 500 (error)
-            expect([400, 422, 500]).toContain(response.status);
+            // Empty file may fail with 400 (validation) or 500 (error during save)
+            expect([400, 500]).toContain(response.status);
         });
     });
 
